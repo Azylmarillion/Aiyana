@@ -536,7 +536,7 @@ public class XboxControllerInputManagerMAC : MonoBehaviour
         #endregion
         #region DPadDown
         #region GetKey
-        OnDPadDownUpInputPress += null;
+        OnDPadDownInputPress += null;
         #endregion
         #region GetKeyDown
         OnDPadDownDownInputPress += null;
