@@ -14,6 +14,10 @@ public class Climber : MonoBehaviour
     [SerializeField]
     float climbForce = 2;
     [SerializeField]
+    float climbRange = 2;
+    [SerializeField]
+    float coolDown = .15f;
+    [SerializeField]
     float lastTime;
     [SerializeField]
     float maxAngle = 30;
@@ -28,6 +32,9 @@ public class Climber : MonoBehaviour
     LayerMask currentSpotLayer;
     [SerializeField]
     LayerMask whatsClimbable;
+    //
+    [SerializeField]
+    Quaternion oldRotation;
     //
     [SerializeField]
     Vector3 targetPoint;
@@ -49,6 +56,11 @@ public class Climber : MonoBehaviour
     //
     [SerializeField]
     Transform handTransform;
+    //
+    [SerializeField]
+    Vector3 horizontalHandOffset;
+    [SerializeField]
+    Vector3 verticalHandOffset;
     #endregion
     #endregion
 
@@ -95,6 +107,51 @@ public class Climber : MonoBehaviour
                 {
                     _foundSpot = true;
                     FindSpot(_hit, _currentChekingSort);
+                }
+            }
+        }
+    }
+    void Climb()
+    {
+        if(Time.time - lastTime > coolDown && currentClimbSort == ClimbSort.Climbing)
+        {
+            if(Input.GetAxis("Vertical") > 0)
+            {
+                CheckForSpots(handTransform.position + transform.rotation * verticalHandOffset + transform.up * climbRange, -transform.up,climbRange,CheckingSort.normal);
+                //check for plateau
+            }
+            if (Input.GetAxis("Vertical") < 0)
+            {
+                CheckForSpots(handTransform.position - transform.rotation*(verticalHandOffset + new Vector3(0,0.3f,0)), -transform.up, climbRange, CheckingSort.normal);
+                if(currentClimbSort != ClimbSort.ClimbingTowardsPoint)
+                {
+                    rigidbodyPlayer.isKinematic = false;
+                    tPUC.enabled = true;
+                    currentClimbSort = ClimbSort.Falling;
+                    oldRotation = transform.rotation;
+                }
+            }
+            if (Input.GetAxis("Horizontal") != 0)
+            {
+                CheckForSpots(handTransform.position + transform.rotation * horizontalHandOffset,transform.right*Input.GetAxis("Horizontal") - transform.up / 3.5f, climbRange / 2, CheckingSort.normal);
+
+                if (currentClimbSort != ClimbSort.ClimbingTowardsPoint)                
+                    CheckForSpots(handTransform.position + transform.rotation * horizontalHandOffset, transform.right * Input.GetAxis("Horizontal") - transform.up / 1.5f, climbRange / 3, CheckingSort.normal);
+
+                if (currentClimbSort != ClimbSort.ClimbingTowardsPoint)
+                    CheckForSpots(handTransform.position + transform.rotation * horizontalHandOffset, transform.right * Input.GetAxis("Horizontal") - transform.up / 6, climbRange / 1.5f, CheckingSort.normal);
+
+                if (currentClimbSort != ClimbSort.ClimbingTowardsPoint)
+                {
+                    int _horizontal = 0;
+
+                    if (Input.GetAxis("Horizontal") < 0)
+                        _horizontal = -1;
+                    if (Input.GetAxis("Horizontal") > 0)
+                        _horizontal = 1;
+                    CheckForSpots(handTransform.position + transform.rotation * horizontalHandOffset + transform.right*_horizontal*smallEdge/4,transform.forward - transform.up * 2, climbRange / 3, CheckingSort.turning);
+                    if (currentClimbSort != ClimbSort.ClimbingTowardsPoint)
+                        CheckForSpots(handTransform.position + transform.rotation * horizontalHandOffset + transform.right * .2f, transform.forward - transform.up * 2 + transform.right * _horizontal/1.5f, climbRange / 3, CheckingSort.turning);
                 }
             }
         }
@@ -152,7 +209,6 @@ public class Climber : MonoBehaviour
             tPUC.enabled = true;
         }
     }
-
     RayInfo GetClosestPoint(Transform _tranform, Vector3 _direction , Vector3 _position)
     {
         RayInfo _currentRayInfo = new RayInfo();
