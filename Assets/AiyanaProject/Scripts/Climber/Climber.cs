@@ -73,6 +73,20 @@ public class Climber : MonoBehaviour
     #endregion
 
     #region Meths
+    //void CheckForClimbStart()
+    //{
+    //    RaycastHit _hit;
+    //    Vector3 _direction = transform.forward - transform.up / .8f;
+    //    if(!Physics.Raycast(transform.position + transform.rotation * rayCastPosition,_direction,1.2f ))
+    //    {            
+    //        currentClimbSort = ClimbSort.CheckingForClimbStart;
+    //        if (Physics.Raycast(transform.position + new Vector3(0, 1.1f, 0), -transform.up, out _hit, 1.6f, whatsClimbable))
+    //        {
+    //            FindSpot(_hit, CheckingSort.falling);
+    //            Debug.Log("climbStart");
+    //        }
+    //    }
+    //}
     void CheckForPlateau()
     {
         RaycastHit _hit;
@@ -290,8 +304,8 @@ public class Climber : MonoBehaviour
         }
         if (currentClimbSort == ClimbSort.Walking && !tPC.m_IsGrounded)
             currentClimbSort = ClimbSort.Jumping;
-
-        //check for climb start
+        //if (currentClimbSort == ClimbSort.Walking && (Input.GetAxis("Vertical") != 0 || Input.GetAxis("Horizontal") != 0))
+            //CheckForClimbStart(); je suis completement con ça race             
     }
     RayInfo GetClosestPoint(Transform _tranform, Vector3 _direction , Vector3 _position)
     {
