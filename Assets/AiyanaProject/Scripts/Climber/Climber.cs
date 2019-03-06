@@ -18,6 +18,8 @@ public class Climber : MonoBehaviour
     [SerializeField]
     float coolDown = .15f;
     [SerializeField]
+    float jumpForce = 2;
+    [SerializeField]
     float lastTime;
     [SerializeField]
     float maxAngle = 30;
@@ -27,6 +29,8 @@ public class Climber : MonoBehaviour
     float smallEdge = .25f;
     //
     [SerializeField]
+    LayerMask checkLayerObstacle;
+    [SerializeField]
     LayerMask checkLayerReachable;
     [SerializeField]
     LayerMask currentSpotLayer;
@@ -35,7 +39,9 @@ public class Climber : MonoBehaviour
     //
     [SerializeField]
     Quaternion oldRotation;
-    //
+    //    
+    [SerializeField]
+    Vector3 rayCastPosition;
     [SerializeField]
     Vector3 targetPoint;
     [SerializeField]
@@ -58,6 +64,8 @@ public class Climber : MonoBehaviour
     Transform handTransform;
     //
     [SerializeField]
+    Vector3 fallHandOffset;
+    [SerializeField]
     Vector3 horizontalHandOffset;
     [SerializeField]
     Vector3 verticalHandOffset;
@@ -65,13 +73,31 @@ public class Climber : MonoBehaviour
     #endregion
 
     #region Meths
+    void CheckForPlateau()
+    {
+        RaycastHit _hit;
+        Vector3 _direction = transform.up + transform.forward / 2;
+        if(!Physics.Raycast(handTransform.position + transform.rotation * verticalHandOffset, _direction,out _hit,1.5f,whatsClimbable))
+        {
+            currentClimbSort = ClimbSort.ClimbingTowardPlateau;
+            if (Physics.Raycast(handTransform.position + _direction * 1.5f, -Vector3.up, out _hit, 1.7f, whatsClimbable))
+                targetPoint = handTransform.position + _direction * 1.5f;
+            else
+                targetPoint = handTransform.position + _direction * 1.5f - transform.rotation * new Vector3(0,- .2f, .25f);
+            targetNormal = -transform.forward;
+            animator.SetBool("Crouch", true);
+            animator.SetBool("OnGround", true);
+        }
+    }
     void CheckForSpots(Vector3 _spotLocation, Vector3 _direction, float _range, CheckingSort _currentChekingSort)
     {
         bool _foundSpot = false;
         RaycastHit _hit;
         if(Physics.Raycast(_spotLocation - transform.right * smallEdge / 2,_direction, out _hit, _range, whatsClimbable))
         {
-            if(Vector3.Distance(handTransform.position,_hit.point) > minDistance)
+            Debug.DrawRay(_spotLocation - transform.right * smallEdge / 2, _direction, Color.red);
+
+            if (Vector3.Distance(handTransform.position,_hit.point) > minDistance)
             {
                 _foundSpot = true;
                 FindSpot(_hit, _currentChekingSort);
@@ -81,6 +107,8 @@ public class Climber : MonoBehaviour
         {
             if (Physics.Raycast(_spotLocation + transform.right * smallEdge / 2, _direction, out _hit, _range, whatsClimbable))
             {
+                Debug.DrawRay(_spotLocation + transform.right * smallEdge / 2, _direction, Color.cyan);
+
                 if (Vector3.Distance(handTransform.position, _hit.point) > minDistance)
                 {
                     _foundSpot = true;
@@ -92,7 +120,9 @@ public class Climber : MonoBehaviour
         {
             if (Physics.Raycast(_spotLocation - transform.right * smallEdge / 2 + transform.forward * smallEdge, _direction, out _hit, _range, whatsClimbable))
             {
-                if (Vector3.Distance(handTransform.position, _hit.point) > minDistance)
+                Debug.DrawRay(_spotLocation - transform.right * smallEdge / 2 + transform.forward * smallEdge, _direction, Color.yellow);
+
+                if (Vector3.Distance(handTransform.position, _hit.point)-smallEdge/1.5f > minDistance)
                 {
                     _foundSpot = true;
                     FindSpot(_hit, _currentChekingSort);
@@ -103,7 +133,8 @@ public class Climber : MonoBehaviour
         {
             if (Physics.Raycast(_spotLocation + transform.right * smallEdge / 2 + transform.forward * smallEdge, _direction, out _hit, _range, whatsClimbable))
             {
-                if (Vector3.Distance(handTransform.position, _hit.point) > minDistance)
+                Debug.DrawRay(_spotLocation + transform.right * smallEdge / 2 + transform.forward * smallEdge, _direction,Color.green);
+                if (Vector3.Distance(handTransform.position, _hit.point) - smallEdge / 1.5f > minDistance)
                 {
                     _foundSpot = true;
                     FindSpot(_hit, _currentChekingSort);
@@ -118,7 +149,8 @@ public class Climber : MonoBehaviour
             if(Input.GetAxis("Vertical") > 0)
             {
                 CheckForSpots(handTransform.position + transform.rotation * verticalHandOffset + transform.up * climbRange, -transform.up,climbRange,CheckingSort.normal);
-                //check for plateau
+                if (currentClimbSort != ClimbSort.ClimbingTowardsPoint)
+                    CheckForPlateau();
             }
             if (Input.GetAxis("Vertical") < 0)
             {
@@ -178,8 +210,38 @@ public class Climber : MonoBehaviour
                     tPC.m_IsGrounded = false;
                 }
                 currentClimbSort = ClimbSort.ClimbingTowardsPoint;
+                beginDistance = Vector3.Distance(transform.position, (targetPoint - transform.rotation * handTransform.localPosition));
             }
         }
+    }
+    void Jumping()
+    {
+        if(rigidbodyPlayer.velocity.y < 0 && currentClimbSort != ClimbSort.Falling)
+        {
+            currentClimbSort = ClimbSort.Falling;
+            oldRotation = transform.rotation;
+        }
+        if (rigidbodyPlayer.velocity.y > 0 && currentClimbSort != ClimbSort.Jumping)
+            currentClimbSort = ClimbSort.Jumping;
+        if (currentClimbSort == ClimbSort.Jumping)
+            CheckForSpots(handTransform.position + fallHandOffset, -transform.up,.1f,CheckingSort.normal);
+        if(currentClimbSort == ClimbSort.Falling)
+        {
+            CheckForSpots(handTransform.position + fallHandOffset + transform.rotation * new Vector3(.02f, -.6f, 0), - transform.up,.4f,CheckingSort.normal);
+            transform.rotation = oldRotation;
+        }
+    }
+    void LinkEverything()
+    {
+        if (currentClimbSort == ClimbSort.Walking && Input.GetAxis("Vertical") > 0)
+            StartClimbing();
+        if (currentClimbSort == ClimbSort.Climbing)
+            Climb();
+        UpdateStates();
+        if (currentClimbSort == ClimbSort.ClimbingTowardsPoint || currentClimbSort == ClimbSort.ClimbingTowardPlateau)
+            MoveTowardsPoint();
+        if (currentClimbSort == ClimbSort.Jumping || currentClimbSort == ClimbSort.Falling)
+            Jumping();
     }
     void MoveTowardsPoint()
     {
@@ -209,6 +271,28 @@ public class Climber : MonoBehaviour
             tPUC.enabled = true;
         }
     }
+    void StartClimbing()
+    {
+        if(Physics.Raycast(transform.position + transform.rotation * rayCastPosition,transform.forward,.4f)&& Time.time - lastTime > coolDown && currentClimbSort == ClimbSort.Walking)
+        {
+            if (currentClimbSort == ClimbSort.Walking)
+                rigidbodyPlayer.AddForce(transform.up * jumpForce);
+            lastTime = Time.time;       
+        }            
+    }
+    void UpdateStates()
+    {
+        if(currentClimbSort != ClimbSort.Walking && tPC.m_IsGrounded && currentClimbSort != ClimbSort.ClimbingTowardsPoint)
+        {
+            currentClimbSort = ClimbSort.Walking;
+            tPUC.enabled = true;
+            rigidbodyPlayer.isKinematic = false;
+        }
+        if (currentClimbSort == ClimbSort.Walking && !tPC.m_IsGrounded)
+            currentClimbSort = ClimbSort.Jumping;
+
+        //check for climb start
+    }
     RayInfo GetClosestPoint(Transform _tranform, Vector3 _direction , Vector3 _position)
     {
         RayInfo _currentRayInfo = new RayInfo();
@@ -221,9 +305,9 @@ public class Climber : MonoBehaviour
             _currentRayInfo.Normal = _hit.normal;
             if(!Physics.Linecast(handTransform.position + transform.rotation * new Vector3(0,.05f,.05f),_currentRayInfo.Point + new Vector3(0,.5f,0),out _hit,checkLayerReachable))
             {
-                if(!Physics.Linecast(_currentRayInfo.Point - Quaternion.Euler(new Vector3(0,90,0))*_currentRayInfo.Normal * .35f + .1f *_currentRayInfo.Point, _currentRayInfo.Point + Quaternion.Euler(new Vector3(0, 90, 0)) * _currentRayInfo.Normal * .35f + .1f * _currentRayInfo.Point,out _hit,checkLayerReachable))
+                if(!Physics.Linecast(_currentRayInfo.Point - Quaternion.Euler(new Vector3(0,90,0))*_currentRayInfo.Normal * .35f + .1f *_currentRayInfo.Normal, _currentRayInfo.Point + Quaternion.Euler(new Vector3(0, 90, 0)) * _currentRayInfo.Normal * .35f + .1f * _currentRayInfo.Normal, out _hit,checkLayerObstacle))
                 {
-                    if (!Physics.Linecast(_currentRayInfo.Point + Quaternion.Euler(new Vector3(0, 90, 0)) * _currentRayInfo.Normal * .35f + .1f * _currentRayInfo.Point, _currentRayInfo.Point - Quaternion.Euler(new Vector3(0, 90, 0)) * _currentRayInfo.Normal * .35f + .1f * _currentRayInfo.Point, out _hit, checkLayerReachable))
+                    if (!Physics.Linecast(_currentRayInfo.Point + Quaternion.Euler(new Vector3(0, 90, 0)) * _currentRayInfo.Normal * .35f + .1f * _currentRayInfo.Normal, _currentRayInfo.Point - Quaternion.Euler(new Vector3(0, 90, 0)) * _currentRayInfo.Normal * .35f + .1f * _currentRayInfo.Normal, out _hit, checkLayerObstacle))
                     {
                         _currentRayInfo.CanGoToPoint = true;
                     }
@@ -246,12 +330,11 @@ public class Climber : MonoBehaviour
         }
         else
         {
-            SetGoToPointFalse();
             _tranform.gameObject.layer = _oldLayer;
             return _currentRayInfo;
         }
     }
-    #region redundancy
+    #region Redundancy
     void SetGoToPointFalse()
     {
         RayInfo _currentRayInfo = new RayInfo();
@@ -268,6 +351,10 @@ public class Climber : MonoBehaviour
             rigidbodyPlayer = GetComponent<Rigidbody>();
         }
     }
+    private void Update()
+    {
+        LinkEverything();
+    }
     #endregion
 }
 
@@ -278,5 +365,4 @@ public class RayInfo
     //
     public Vector3 Normal;
     public Vector3 Point;
-
 }
