@@ -41,23 +41,16 @@ public class PlayerController : MonoBehaviour
         float _lerpAngle = Mathf.LerpAngle(transform.localEulerAngles.y, Camera.main.transform.localEulerAngles.y, Time.deltaTime * playerRotationSpeed);
         transform.localEulerAngles = new Vector3(transform.localEulerAngles.x, _lerpAngle, transform.localEulerAngles.z);
     }
-    //void PlayerJump(bool _doIt)
-    //{
-    //    if (!_doIt) return;
-    //    rigidbodyPlayer.AddForce(Vector3.up * playerJumpForce);
-    //    Debug.Log("jump");
-    //}
+    
     #endregion
 
     #region UniMeths
     void Awake()
     {
         XboxControllerInputManagerWindows.OnMoveAxisInput += PlayerMovement;
-        //XboxControllerInputManagerWindows.OnADownInputPress += PlayerJump;
     }
     private void Start()
     {
-       // if (!rigidbodyPlayer) {rigidbodyPlayer = GetComponent<Rigidbody>();}
 
     }
     #endregion
