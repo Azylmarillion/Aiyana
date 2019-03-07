@@ -2,77 +2,61 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
 public class TPCamera : MonoBehaviour
-{
+{    
+    #region F/P
+    [SerializeField, Header("Camera settings")]
+    Transform target;
+    [SerializeField, Range(.1f, 10)]
+    float cameraSpeed = 2;
+    [SerializeField, Range(.1f, 10)]
+    float rotationCameraSpeed = 2;
+    Vector3 initDirectionOffeset;
     [SerializeField]
-    float rotationSpeed = 1;
+    Camera cameraBase;
     [SerializeField]
-    float zoomSpeed = 2f;
-    [SerializeField]
-    Transform Obstruction;
-    [SerializeField]
-    Transform Player;
-    [SerializeField]
-    Transform Target;        
-    
-    void CamControl(float _x,float _y)
+    float initFov;
+    [SerializeField, Range(1, 120)]
+    float speedFov = 80;
+    #endregion
+
+    #region Meths
+    void MoveCamera()
     {
-        float _vertical = _y * rotationSpeed;
-        float _horizontal = _x * rotationSpeed;
-        _vertical = Mathf.Clamp(_vertical, -35, 60);
-
-        transform.LookAt(Target);
-
-        if (Input.GetKey(KeyCode.LeftShift))
-        {
-            Target.rotation = Quaternion.Euler(_vertical, _horizontal, 0);
-        }
-        else
-        {
-            Target.rotation = Quaternion.Euler(_vertical, _horizontal, 0);
-            Player.rotation = Quaternion.Euler(0, _horizontal, 0);
-        }
+        if (!target) return;
+        Vector3 _cameradirection = target.position + initDirectionOffeset;
+        transform.position = Vector3.Slerp(transform.position, _cameradirection, cameraSpeed);
+        transform.LookAt(target);
     }
 
-
-    void ViewObstructed()
+    void SprintEffect(float _vertical)
     {
-        RaycastHit _hit;
-
-        if (Physics.Raycast(transform.position, Target.position - transform.position, out _hit, 4.5f))
-        {
-            if (_hit.collider.gameObject.tag != "Player")
-            {
-                Obstruction = _hit.transform;
-                Obstruction.gameObject.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
-
-                if (Vector3.Distance(Obstruction.position, transform.position) >= 3f && Vector3.Distance(transform.position, Target.position) >= 1.5f)
-                    transform.Translate(Vector3.forward * zoomSpeed * Time.deltaTime);
-            }
-            else
-            {
-                Obstruction.gameObject.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
-                if (Vector3.Distance(transform.position, Target.position) < 4.5f)
-                    transform.Translate(Vector3.back * zoomSpeed * Time.deltaTime);
-            }
-        }
+        if (!cameraBase) return;
+        cameraBase.fieldOfView = Mathf.Lerp(cameraBase.fieldOfView, _vertical > .5f ? speedFov : initFov, Time.deltaTime * 5);
     }
 
-    private void Awake()
+    void RotateCamera(float _x)
     {
-        XboxControllerInputManagerWindows.OnRotateAxisInput += CamControl;
+        Quaternion _angleRotation = Quaternion.AngleAxis(_x * rotationCameraSpeed, Vector3.up);
+        initDirectionOffeset = _angleRotation * initDirectionOffeset;
     }
+    #endregion
 
-    private void LateUpdate()
+    #region UniMeths
+    void Awake()
     {
-        //CamControl();
-        ViewObstructed();
+        XboxControllerInputManagerWindows.OnRotateXAxisInput += RotateCamera;
+        XboxControllerInputManagerWindows.OnVerticalAxisInput += SprintEffect;
     }
-
+    void LateUpdate()
+    {
+        MoveCamera();
+    }
     void Start()
     {
-        Obstruction = Target;
-        //Cursor.visible = false;
-        //Cursor.lockState = CursorLockMode.Locked;
+        initDirectionOffeset = transform.position - target.position;
+        if (cameraBase) initFov = cameraBase.fieldOfView;
     }
+    #endregion
 }
