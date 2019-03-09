@@ -1,57 +1,51 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
     #region F/P
-    [SerializeField, Header("Player settings"), Range(.1f, 20)]
-    float gravity = 20;
-    [SerializeField, Range(.1f, 400)]
-    float playerJumpForce = 200;
-    [SerializeField, Range(.1f, 20)]
-    float playerMoveSpeed = 5;
-    [SerializeField, Range(.1f, 20)]
-    float playerRotationSpeed = 5;
-    Vector3 moveDirection;
-    [SerializeField]
-    CharacterController playerController;
-   // [SerializeField]
-   // Rigidbody rigidbodyPlayer;
+    #region Player
+    [SerializeField, Header("Player settings")]
+    CharacterController3D playerToControl;
+    float horizontal = 0f;
+    float vertical = 0f;
+    bool canJump = false;
+    bool canCrouch = false;
+    #endregion
+
     #endregion
 
     #region Meths
-    void PlayerMovement(float _horizontal, float _vertical)
+    void MakeMeJump(bool _doIt)
     {
-        if (!playerController) return;
-        if (playerController.isGrounded)
-        {
-            moveDirection = new Vector3(_horizontal, 0, _vertical);
-            moveDirection = Camera.main.transform.TransformDirection(moveDirection);
-            moveDirection.y = 0;
-            moveDirection *= playerMoveSpeed;
-        }
-        moveDirection.y -= gravity * Time.deltaTime;
-        playerController.Move(moveDirection * Time.deltaTime);
-        PlayerRotation(_horizontal);
+        if (!_doIt) return;
+        canJump = true;
+        canCrouch = false;
     }
-    void PlayerRotation(float _xRotation)
+
+    void MakeMeMove(float _horizontal, float _vertical)
     {
-        if (!Camera.main) return;
-        float _lerpAngle = Mathf.LerpAngle(transform.localEulerAngles.y, Camera.main.transform.localEulerAngles.y, Time.deltaTime * playerRotationSpeed);
-        transform.localEulerAngles = new Vector3(transform.localEulerAngles.x, _lerpAngle, transform.localEulerAngles.z);
+        horizontal = _horizontal;
+        vertical = _vertical;
     }
-    
     #endregion
 
-    #region UniMeths
+    #region UnyMeths
     void Awake()
     {
-        XboxControllerInputManagerWindows.OnMoveAxisInput += PlayerMovement;
+        XboxControllerInputManagerWindows.OnMoveAxisInput += MakeMeMove;
+        XboxControllerInputManagerWindows.OnADownInputPress += MakeMeJump;
     }
-    private void Start()
+    void FixedUpdate()
     {
-
+        playerToControl.MovePlayer(horizontal, vertical, canCrouch, canJump);
+        canJump = false;
+    }
+    void Start()
+    {
+        if(!playerToControl)
+        {
+            playerToControl = GetComponent<CharacterController3D>();
+        }
     }
     #endregion
 }
