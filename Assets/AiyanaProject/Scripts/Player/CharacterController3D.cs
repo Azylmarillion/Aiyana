@@ -12,29 +12,32 @@ public class CharacterController3D : MonoBehaviour
     [SerializeField]
     bool canAirControl = false;
     public bool CanAirControl { get { return canAirControl; } }
-    [SerializeField]
-    bool isGrounded;
-    public bool IsGrounded { get { return isGrounded; } }
+    public bool IsGrounded;
     bool wasCrouching = false;
     [Range(0, 1)]
     [SerializeField]
     float crouchSpeed = 1;
+    //[SerializeField]
+    //float gravity = 2;
     [SerializeField]
     float jumpForce = 100f;
-    [SerializeField, Range(0, .3f)]
-    float movementSmoothing = .05f;
+    //[SerializeField, Range(0, .3f)]
+    //float movementSmoothing = .05f;
     [SerializeField, Range(.1f, 50)]
     float moveSpeed = 7;
+    [SerializeField, Range(.1f, 50)]
+    float rotationSpeed = 7;
     [SerializeField]
     LayerMask whatIsGround;
     [SerializeField]
     Rigidbody rigidbodyPlayer;
     [SerializeField]
-    Vector3 ceilingCheck;
+    Transform ceilingCheck;
     [SerializeField]
-    Vector3 groundCheck;
-    [SerializeField]
-    Vector3 velocity = Vector3.zero;
+    Transform groundCheck;
+    Vector3 moveDirection;
+    //[SerializeField]
+    //Vector3 inputs = Vector3.zero;
     [Header("Events")]
     [Space]
     public UnityEvent OnLandEvent;
@@ -44,17 +47,17 @@ public class CharacterController3D : MonoBehaviour
     #endregion
 
     #region Meths
-    public void MovePlayer(float _move, bool _isCrouch, bool _isJump)
+    public void MovePlayer(float _horizontal, float _vertical,bool _isCrouch, bool _isJump)
     {
         if (!_isCrouch)
         {
-            if (Physics.OverlapSphere(ceilingCheck, CEILINGRADIUS, whatIsGround).Length > 0)
+            if (Physics.OverlapSphere(ceilingCheck.position, CEILINGRADIUS, whatIsGround).Length > 0)
             {
                 _isCrouch = true;
             }
         }
 
-        if (isGrounded || canAirControl)
+        if (IsGrounded || canAirControl)
         {
 
             if (_isCrouch)
@@ -64,7 +67,7 @@ public class CharacterController3D : MonoBehaviour
                     wasCrouching = true;
                     OnCrouchEvent.Invoke(true);
                 }
-                _move *= crouchSpeed;              
+                moveSpeed *= crouchSpeed;              
             }
             else
             {
@@ -73,47 +76,65 @@ public class CharacterController3D : MonoBehaviour
                     wasCrouching = false;
                     OnCrouchEvent.Invoke(false);
                 }
-            }            
-            if (wasCrouching) return;
-            Vector3 targetVelocity = new Vector3(_move * 10f * moveSpeed * Time.fixedDeltaTime, rigidbodyPlayer.velocity.y);
-            rigidbodyPlayer.velocity = Vector3.SmoothDamp(rigidbodyPlayer.velocity, targetVelocity, ref velocity, movementSmoothing);
-        }
-        if (isGrounded && _isJump)
-        {
-            isGrounded = false;
-            rigidbodyPlayer.AddForce(new Vector2(0f, jumpForce));
-        }
-    }
-    #endregion
-
-    #region UniMeths
-    void Awake()
-    {
-        if (OnLandEvent == null)
-            OnLandEvent = new UnityEvent();
-    }
-    void FixedUpdate()
-    {
-        bool _wasGrounded = isGrounded;
-        isGrounded = false;
-
-        Collider[] _colliders = Physics.OverlapSphere(groundCheck, GROUNDEDRADIUS, whatIsGround);
-        for (int i = 0; i < _colliders.Length; i++)
-        {
-            if (_colliders[i].gameObject != gameObject)
-            {
-                isGrounded = true;
-                if (!_wasGrounded)
-                    OnLandEvent.Invoke();
             }
+            if (!rigidbodyPlayer/* || wasCrouching*/)
+
+            {
+                return;
+            }
+            if (IsGrounded)
+            {
+                moveDirection = new Vector3(_horizontal, 0, _vertical);
+moveDirection = Camera.main.transform.TransformDirection(moveDirection);
+                moveDirection.y = 0;
+                moveDirection *= moveSpeed;
+            }
+           // moveDirection.y -= gravity * Time.deltaTime;
+            rigidbodyPlayer.MovePosition(rigidbodyPlayer.position + moveDirection* Time.deltaTime);
+PlayerRotation(_horizontal);
         }
-    }
-    void Start()
-    {
-        if(!rigidbodyPlayer)
+        if (IsGrounded && _isJump)
         {
-            rigidbodyPlayer = GetComponent<Rigidbody>();
+            IsGrounded = false;
+            rigidbodyPlayer.AddForce(Vector3.up* jumpForce);
         }
     }
+    void PlayerRotation(float _xRotation)
+{
+    if (!Camera.main) return;
+    float _lerpAngle = Mathf.LerpAngle(transform.localEulerAngles.y, Camera.main.transform.localEulerAngles.y, Time.deltaTime * rotationSpeed);
+    transform.localEulerAngles = new Vector3(transform.localEulerAngles.x, _lerpAngle, transform.localEulerAngles.z);
+}
+#endregion
+
+#region UniMeths
+void Awake()
+{
+    if (OnLandEvent == null)
+        OnLandEvent = new UnityEvent();
+}
+void FixedUpdate()
+{
+    bool _wasGrounded = IsGrounded;
+    IsGrounded = false;
+
+    Collider[] _colliders = Physics.OverlapSphere(groundCheck.position, GROUNDEDRADIUS, whatIsGround);
+    for (int i = 0; i < _colliders.Length; i++)
+    {
+        if (_colliders[i].gameObject != gameObject)
+        {
+            IsGrounded = true;
+            if (!_wasGrounded)
+                OnLandEvent.Invoke();
+        }
+    }
+}
+void Start()
+{
+    if (!rigidbodyPlayer)
+    {
+        rigidbodyPlayer = GetComponent<Rigidbody>();
+    }
+}
     #endregion
 }
