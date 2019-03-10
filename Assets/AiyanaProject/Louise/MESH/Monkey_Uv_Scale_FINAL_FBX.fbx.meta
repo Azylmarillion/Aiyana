@@ -5,11 +5,10 @@ ModelImporter:
   fileIDToRecycleName:
     100000: //RootNode
     400000: //RootNode
-    2100000: MonkeyRETOPO_MonkeySculpOBJ_defaultMat1
+    2100000: lambert1
     2300000: //RootNode
     3300000: //RootNode
-    4300000: MonkeyRETOPO:MonkeyRETOPO
-    2186277476908879412: ImportLogs
+    4300000: Monkey_Uv_Scale_FINAL_OBJ:MonkeyRETOPO
   externalObjects: {}
   materials:
     importMaterials: 1
