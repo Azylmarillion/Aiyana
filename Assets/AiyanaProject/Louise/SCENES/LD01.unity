@@ -236,6 +236,14 @@ Prefab:
       propertyPath: m_LocalEulerAnglesHint.y
       value: 85.706
       objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: d1fe4bbeb66869d46ba83e6eeb2b5e71, type: 3}
+      propertyPath: m_Name
+      value: BijouMESH
+      objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: d1fe4bbeb66869d46ba83e6eeb2b5e71, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 178b16d449918d844b474c183067c1dd, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d1fe4bbeb66869d46ba83e6eeb2b5e71, type: 3}
   m_IsPrefabAsset: 0
