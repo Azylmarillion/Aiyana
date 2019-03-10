@@ -1,16 +1,14 @@
 fileFormatVersion: 2
-guid: d2316c9038c5fc1409aec6d5ac077a0c
+guid: 53b4fda86c5002d45a8be5a8f4671aad
 ModelImporter:
   serializedVersion: 23
   fileIDToRecycleName:
-    100000: MonkeyRETOPO
-    100002: //RootNode
-    400000: MonkeyRETOPO
-    400002: //RootNode
-    2100000: MonkeyRETOPOMat
-    2300000: MonkeyRETOPO
-    3300000: MonkeyRETOPO
-    4300000: MonkeyRETOPO
+    100000: //RootNode
+    400000: //RootNode
+    2100000: MonkeyRETOPO_MonkeySculpOBJ_defaultMat1
+    2300000: //RootNode
+    3300000: //RootNode
+    4300000: MonkeyRETOPO:MonkeyRETOPO
     2186277476908879412: ImportLogs
   externalObjects: {}
   materials:
