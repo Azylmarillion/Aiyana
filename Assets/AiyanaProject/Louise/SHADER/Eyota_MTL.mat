@@ -7,10 +7,10 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: Eyota_MTL
-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
+  m_Shader: {fileID: 4800000, guid: 06b1919cf6937444f94e2f81babd7a17, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
+  m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -52,6 +52,26 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _ParallaxMap:
         m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_54293B79_Texture:
+        m_Texture: {fileID: 2800000, guid: 7583b06b0203b494e9e285c5045ba788, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_83B3CBE9_Texture:
+        m_Texture: {fileID: 2800000, guid: 4139947b46654b941a91c85288c3298b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_9053FCF5_Texture:
+        m_Texture: {fileID: 2800000, guid: a1274ad09cf6b3b49babbd6d7aeaf334, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_CDB4C5FE_Texture:
+        m_Texture: {fileID: 2800000, guid: 4a2ff04465689dd41834d95567c432cf, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_EEF87AB7_Texture:
+        m_Texture: {fileID: 2800000, guid: e10f0f4c254be6d488e7b75cf5e5dc58, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
