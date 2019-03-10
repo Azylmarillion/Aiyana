@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityStandardAssets.Characters.ThirdPerson;
+//using UnityStandardAssets.Characters.ThirdPerson;
 
 public class Climber : MonoBehaviour
 {
@@ -53,9 +53,11 @@ public class Climber : MonoBehaviour
     //    
     [SerializeField]
     ThirdPersonCharacter tPC;
+    //UniCharacterController3D tPC;
     //
     [SerializeField]
     ThirdPersonUserControl tPUC;
+    //UniPlayerController tPUC;
     //
     [SerializeField]
     Rigidbody rigidbodyPlayer;
@@ -68,7 +70,7 @@ public class Climber : MonoBehaviour
     [SerializeField]
     Vector3 horizontalHandOffset;
     [SerializeField]
-    Vector3 verticalHandOffset;
+    Vector3 verticalHandOffset;    
     #endregion
     #endregion
 
@@ -222,6 +224,7 @@ public class Climber : MonoBehaviour
                     tPUC.enabled = false;
                     rigidbodyPlayer.isKinematic = true;
                     tPC.m_IsGrounded = false;
+                    //tPC.IsGrounded = false;
                 }
                 currentClimbSort = ClimbSort.ClimbingTowardsPoint;
                 beginDistance = Vector3.Distance(transform.position, (targetPoint - transform.rotation * handTransform.localPosition));
@@ -296,16 +299,16 @@ public class Climber : MonoBehaviour
     }
     void UpdateStates()
     {
-        if(currentClimbSort != ClimbSort.Walking && tPC.m_IsGrounded && currentClimbSort != ClimbSort.ClimbingTowardsPoint)
+        if(currentClimbSort != ClimbSort.Walking && tPC.m_IsGrounded/*IsGrounded*/ && currentClimbSort != ClimbSort.ClimbingTowardsPoint)
         {
             currentClimbSort = ClimbSort.Walking;
             tPUC.enabled = true;
             rigidbodyPlayer.isKinematic = false;
         }
-        if (currentClimbSort == ClimbSort.Walking && !tPC.m_IsGrounded)
+        if (currentClimbSort == ClimbSort.Walking && !tPC.m_IsGrounded/*IsGrounded*/)
             currentClimbSort = ClimbSort.Jumping;
         //if (currentClimbSort == ClimbSort.Walking && (Input.GetAxis("Vertical") != 0 || Input.GetAxis("Horizontal") != 0))
-            //CheckForClimbStart(); je suis completement con ça race             
+            //CheckForClimbStart();            
     }
     RayInfo GetClosestPoint(Transform _tranform, Vector3 _direction , Vector3 _position)
     {

@@ -37,7 +37,7 @@ public class PlayerController : MonoBehaviour
     }
     void FixedUpdate()
     {
-        playerToControl.MovePlayer(horizontal, vertical, canCrouch, canJump);
+        //playerToControl.MovePlayer(horizontal, vertical, canCrouch, canJump);
         canJump = false;
     }
     void Start()
